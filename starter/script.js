@@ -81,6 +81,7 @@ const showMovements = function (movements) {
   });
 }
 
+
 //Creating Username
 const createUsername = function (accs) {
   accs.forEach(function (acc) {
@@ -89,7 +90,6 @@ const createUsername = function (accs) {
     }).join('');
   });
 };
-
 
 
 //Display Total Balance in Account
@@ -102,14 +102,13 @@ const displayBalance = function (movements) {
 };
 
 
-
 //Dsiplay Interest , Withdraws, Deposits
-const displaySummary = function (movements,interestrate) {
-  const incoming = movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0)
+const displaySummary = function (account) {
+  const incoming = account.movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0)
   labelSumIn.textContent = `${incoming}€`
-  const outgoing = movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0)
+  const outgoing = account.movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0)
   labelSumOut.textContent = `${outgoing}€`
-  const interest = (incoming * interestrate) / 100
+  const interest = (incoming * account.interestRate) / 100
   labelSumInterest.textContent = interest
 }
 
@@ -138,7 +137,7 @@ btnLogin.addEventListener('click', function (e) {
     displayBalance(currentuser.movements)
 
     //show summary
-    displaySummary(currentuser.movements,currentuser.interestRate)
+    displaySummary(currentuser)
 
 
   }
@@ -289,13 +288,5 @@ btnLogin.addEventListener('click', function (e) {
 //       }, 0)
 //   return humanages
 // }
-
-
-
-
-
-
-console.log(calcAverageHumanAge(arr));
-
 
 // console.log(calcAverageHumanAge(arr));
