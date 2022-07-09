@@ -64,16 +64,18 @@ const inputClosePin = document.querySelector('.form__input--pin');
 
 
 
-const showMovements = function (movements) {
+const showMovements = function (movements,sort=false) {
   containerMovements.innerHTML = ''
-  movements.forEach(function (move, index) {
+  const sortedmovements=sort? movements.slice().sort((a,b)=>a-b):
+  movements
+  sortedmovements.forEach(function (move, index) {
 
     const transcationType = move > 0 ? 'deposit' : 'withdrawal'
 
     const html = `<div class="movements__row">
     <div class="movements__type movements__type--${transcationType}">${index+1} ${transcationType}</div>
     <div class="movements__date">3 days ago</div>
-    <div class="movements__value">${move}</div>
+    <div class="movements__value">${move}€</div>
   </div>`;
 
     containerMovements.insertAdjacentHTML('afterbegin', html)
@@ -81,6 +83,27 @@ const showMovements = function (movements) {
   });
 }
 
+
+
+//updating ui
+const updateUi = function (acc) {
+  //show movements
+  showMovements(acc.movements)
+
+  //show balance
+  displayBalance(acc)
+
+  //show summary
+  displaySummary(acc)
+}
+
+//Ui Default
+
+const defaultUi=function(){
+  containerApp.style.opacity="0";
+  labelWelcome.textContent =`Log in to get started`;
+}
+  
 
 //Creating Username
 const createUsername = function (accs) {
@@ -93,16 +116,16 @@ const createUsername = function (accs) {
 
 
 //Display Total Balance in Account
-const displayBalance = function (movements) {
-  const balance = movements.reduce(function (acc, mov) {
+const displayBalance = function (acc) {
+  acc.balance = acc.movements.reduce(function (acc, mov) {
 
-    return acc += mov
+    return acc += mov;
   })
-  labelBalance.textContent = `${balance}€`
+  labelBalance.textContent = `${acc.balance}€`
 };
 
 
-//Dsiplay Interest , Withdraws, Deposits
+//Display Interest , Withdraws, Deposits
 const displaySummary = function (account) {
   const incoming = account.movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0)
   labelSumIn.textContent = `${incoming}€`
@@ -111,6 +134,8 @@ const displaySummary = function (account) {
   const interest = (incoming * account.interestRate) / 100
   labelSumInterest.textContent = interest
 }
+
+
 
 
 
@@ -126,32 +151,73 @@ btnLogin.addEventListener('click', function (e) {
   //check pin
   if (currentuser.pin == inputLoginPin.value) {
     //show welcome message
+    inputLoginUsername.value = "";
+    inputLoginPin.value = "";
     console.log(inputLoginPin.value);
-    labelWelcome.textContent = `Welcome Back ${currentuser.owner}`
+    labelWelcome.textContent = `Welcome Back ${currentuser.owner}`;
     //show ui
     containerApp.style.opacity = "1"
-    //show movements
-    showMovements(currentuser.movements)
 
-    //show balance
-    displayBalance(currentuser.movements)
-
-    //show summary
-    displaySummary(currentuser)
-
+    //update UI
+    updateUi(currentuser);
 
   }
+})
+
+//implementing transfers
+
+btnTransfer.addEventListener("click", function (e) {
+  e.preventDefault()
+  const tamount = Number(inputTransferAmount.value)
+  const recipient = accounts.find(acc => acc.username === inputTransferTo.value);
+  if (currentuser.balance >= tamount && tamount > 0 && recipient ?.username !== currentuser.username) {
+    inputTransferTo.value = inputTransferAmount.value = ""
+    
+    currentuser.movements.push(-1 * (tamount))
+    recipient.movements.push(tamount)
+
+    //update Ui
+    updateUi(currentuser)
+  }
+})
+
+btnLoan.addEventListener("click", function(e){
+  e.preventDefault()
+  const amount= Number(inputLoanAmount.value)
+  if(amount>0 && currentuser.movements.some(mov=>mov>=amount*.1)){
+    currentuser.movements.push(amount);
+    updateUi(currentuser);
+  }
+  inputLoanAmount.value=""
+})
+
+//close account functionallity
+btnClose.addEventListener("click", function(e){
+  e.preventDefault()
+  if(currentuser.username===inputCloseUsername.value && 
+    currentuser.pin===Number(inputClosePin.value)){
+      const index=accounts.findIndex(acc=>acc===currentuser)
+      if(index>-1){
+        accounts.splice(index,1)
+        console.log(accounts);
+        e.defaultPrevented
+      }
+      inputCloseUsername.value=inputClosePin.value=""
+      defaultUi();
+  }
+})
+
+//sort functionality
+let issort=false
+btnSort.addEventListener("click", function(e){
+  e.preventDefault()
+  showMovements(currentuser.movements,!issort)
+  issort=!issort
 
 })
 
-
-
-
-
-
-
-
-
+const bankdeposits=accounts.flatMap(acc=>acc.movements)
+console.log(bankdeposits);
 
 
 
